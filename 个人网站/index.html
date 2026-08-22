@@ -1,16 +1,355 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=portfolio.html">
-    <title>个人作品集</title>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>柳贯 — 作品集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0e14;
+    --bg-panel:#10151d;
+    --bg-panel-2:#141a23;
+    --line:#1f2733;
+    --amber:#ffb000;
+    --amber-dim:#8a611c;
+    --amber-glow:rgba(255,176,0,0.18);
+    --text-primary:#e9e6df;
+    --text-dim:#7c8794;
+    --text-faint:#4a5563;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-deep);
+    color:var(--text-primary);
+    font-family:var(--font-mono);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 3px);
+    pointer-events:none;
+    z-index:100;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--amber);color:var(--bg-deep);}
 
+  /* ---- topbar ---- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 36px;
+    background:rgba(10,14,20,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    z-index:50;
+    font-size:13px;
+  }
+  .topbar .brand{color:var(--amber); letter-spacing:0.5px;}
+  .topbar nav{display:flex; gap:28px;}
+  .topbar nav a{color:var(--text-dim); transition:color .2s;}
+  .topbar nav a:hover{color:var(--amber);}
+  .topbar nav a::before{content:"./"; color:var(--text-faint);}
+
+  /* ---- hero / terminal ---- */
+  .hero{
+    min-height:100vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:120px 36px 60px;
+    max-width:900px;
+    margin:0 auto;
+  }
+  .term-window{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    box-shadow:0 0 60px var(--amber-glow), 0 20px 50px rgba(0,0,0,0.5);
+    overflow:hidden;
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px;
+    background:var(--bg-panel-2);
+    border-bottom:1px solid var(--line);
+  }
+  .term-bar .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.red{background:#4a2a2a;} .dot.yellow{background:#4a3f1a;} .dot.green{background:#1a3a26;}
+  .term-bar .path{margin-left:12px; font-size:12px; color:var(--text-faint);}
+  .term-body{padding:28px 26px 34px; font-size:14px; min-height:260px;}
+  .term-line{color:var(--text-dim); margin-bottom:6px;}
+  .term-line .prompt{color:var(--amber);}
+  .cursor{display:inline-block; width:8px; height:16px; background:var(--amber); vertical-align:middle; animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-name{
+    font-family:var(--font-display);
+    font-size:clamp(36px,7vw,64px);
+    font-weight:700;
+    color:var(--text-primary);
+    margin:18px 0 4px;
+    letter-spacing:-1px;
+    opacity:0; transform:translateY(10px);
+  }
+  .hero-role{
+    font-size:15px; color:var(--amber);
+    margin-bottom:14px;
+    opacity:0;
+  }
+  .hero-desc{
+    color:var(--text-dim); font-size:14px; max-width:520px;
+    opacity:0;
+  }
+  .hero-cmd-row{
+    display:flex; align-items:center; gap:8px;
+    margin-top:26px;
+    border-top:1px solid var(--line);
+    padding-top:20px;
+    opacity:0;
+  }
+  .hero-cmd-row .prompt{color:var(--amber); font-size:14px;}
+  #cmdInput{
+    flex:1; background:transparent; border:none; outline:none;
+    color:var(--text-primary); font-family:var(--font-mono); font-size:14px;
+  }
+  .hero-hint{color:var(--text-faint); font-size:12px; margin-top:8px; opacity:0;}
+
+  .reveal{animation:fadeUp .6s ease forwards;}
+  @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
+
+  /* ---- section shared ---- */
+  section{padding:90px 36px; max-width:1080px; margin:0 auto;}
+  .sec-label{
+    font-size:12px; color:var(--amber); letter-spacing:2px;
+    margin-bottom:6px;
+  }
+  .sec-title{
+    font-family:var(--font-display); font-size:clamp(26px,4vw,38px);
+    font-weight:600; margin-bottom:36px; color:var(--text-primary);
+  }
+
+  /* ---- about ---- */
+  .about-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:50px;}
+  .about-text p{color:var(--text-dim); margin-bottom:16px; font-size:14.5px;}
+  .about-text .amber-word{color:var(--amber);}
+  .stack-panel{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:20px;
+  }
+  .stack-panel .panel-title{font-size:12px; color:var(--text-faint); margin-bottom:14px; letter-spacing:1px;}
+  .stack-list{list-style:none; display:flex; flex-wrap:wrap; gap:8px;}
+  .stack-list li{
+    font-size:12.5px; padding:6px 12px; border:1px solid var(--line);
+    border-radius:20px; color:var(--text-dim); transition:.2s;
+  }
+  .stack-list li:hover{border-color:var(--amber-dim); color:var(--amber);}
+
+  /* ---- projects ---- */
+  .proj-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px;}
+  .proj-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:8px;
+    overflow:hidden; transition:transform .25s, border-color .25s, box-shadow .25s;
+  }
+  .proj-card:hover{transform:translateY(-4px); border-color:var(--amber-dim); box-shadow:0 12px 30px rgba(0,0,0,0.4);}
+  .proj-titlebar{
+    display:flex; align-items:center; gap:7px; padding:9px 13px;
+    background:var(--bg-panel-2); border-bottom:1px solid var(--line);
+  }
+  .proj-titlebar .dot{width:9px;height:9px;border-radius:50%;}
+  .proj-titlebar span{margin-left:8px; font-size:11px; color:var(--text-faint);}
+  .proj-body{padding:22px;}
+  .proj-body h3{font-family:var(--font-display); font-size:19px; margin-bottom:8px; color:var(--text-primary);}
+  .proj-body p{font-size:13px; color:var(--text-dim); margin-bottom:16px; min-height:52px;}
+  .proj-tags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+  .proj-tags span{font-size:11px; color:var(--amber); border:1px solid var(--amber-dim); padding:3px 9px; border-radius:4px;}
+  .proj-link{font-size:12.5px; color:var(--text-dim); display:inline-flex; align-items:center; gap:6px;}
+  .proj-link:hover{color:var(--amber);}
+
+  /* ---- contact ---- */
+  .contact-box{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:8px;
+    padding:40px; text-align:center;
+  }
+  .contact-box .sec-title{margin-bottom:14px;}
+  .contact-box p{color:var(--text-dim); margin-bottom:26px; font-size:14px;}
+  .contact-links{display:flex; gap:18px; justify-content:center; flex-wrap:wrap;}
+  .contact-links a{
+    font-size:13px; padding:10px 20px; border:1px solid var(--line); border-radius:6px;
+    color:var(--text-primary); transition:.2s;
+  }
+  .contact-links a:hover{border-color:var(--amber); color:var(--amber);}
+  .qr-wrap{display:flex; flex-direction:column; align-items:center; gap:12px;}
+  .qr-box{
+    width:180px; height:180px; background:#f4f1ea; border-radius:6px;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .qr-box img{width:100%; height:100%; object-fit:cover;}
+  .qr-placeholder{font-family:var(--font-mono); font-size:11px; color:#9a8f7a; text-align:center; padding:10px; line-height:1.5;}
+  .qr-caption{font-size:12.5px; color:var(--text-dim);}
+
+  footer{
+    text-align:center; padding:34px; color:var(--text-faint); font-size:12px;
+    border-top:1px solid var(--line);
+  }
+
+  @media (max-width:720px){
+    .topbar nav{display:none;}
+    .about-grid{grid-template-columns:1fr;}
+    section{padding:60px 22px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
 <body>
-    <p>正在进入个人作品集...</p>
-    <p>
-        如果没有自动跳转，
-        <a href="portfolio.html">点击这里</a>
-    </p>
+
+<div class="topbar">
+  <div class="brand">~/柳贯</div>
+  <nav>
+    <a href="#about">about</a>
+    <a href="#projects">projects</a>
+    <a href="#contact">contact</a>
+  </nav>
+</div>
+
+<section class="hero">
+  <div class="term-window">
+    <div class="term-bar">
+      <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+      <div class="path">visitor@portfolio: ~</div>
+    </div>
+    <div class="term-body">
+      <div class="term-line"><span class="prompt">$</span> whoami</div>
+      <h1 class="hero-name" id="typedName"></h1>
+      <div class="hero-role reveal" style="animation-delay:.9s">应届毕业生 · 正在寻找第一份工作</div>
+      <p class="hero-desc reveal" style="animation-delay:1.1s">
+        刚从学校毕业，带着课堂里学到的东西和几个自己动手做的项目，
+        想找一个能让我继续学习、继续动手的起点。手脚快、肯钻研，
+        对新工具和新方法上手不慢。
+      </p>
+      <div class="hero-cmd-row reveal" style="animation-delay:1.3s">
+        <span class="prompt">visitor@portfolio:~$</span>
+        <input id="cmdInput" type="text" placeholder="输入 help 试试看…" autocomplete="off">
+      </div>
+      <div class="hero-hint reveal" style="animation-delay:1.4s">可用命令： help · about · projects · contact · clear</div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="sec-label">01 · ABOUT</div>
+  <h2 class="sec-title">关于我</h2>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>我是柳贯，今年刚毕业的，应届毕业生，<span class="amber-word">正在找第一份正式工作</span>。在校期间没有满足于只完成作业，而是自己找了几个项目练手，从零开始把想法做成能跑起来的东西。</p>
+      <p>没有很多年的工作经验，但学习速度是我的优势——遇到不会的技术，会主动查文档、看源码、动手试，直到搞明白为止。希望能加入一个团队，从执行做起，快速成长。</p>
+    </div>
+    <div class="stack-panel">
+      <div class="panel-title">// 技能 / 掌握程度</div>
+      <ul class="stack-list">
+        <li>Keil uVision5</li><li> Python</li><li>Java</li><li>Excel</li>
+        <li>RSoft</li></li><li>数据分析</li><li>DevEco Studio</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="sec-label">02 · PROJECTS</div>
+  <h2 class="sec-title">项目</h2>
+  <div class="proj-grid">
+
+    <div class="proj-card">
+      <div class="proj-titlebar"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div><span>project-01.js</span></div>
+      <div class="proj-body">
+        <h3>基于亚波长复合光栅的光学气体传感器设计</h3>
+        <p>利用Rsoft对光栅传感器模型进行建模，并以叠加的状态实现复合光栅通过运行Rsoft，使光学传感器运作并且得出数据进行统计对比</p>
+        <div class="proj-tags"><span>亚波长复合光栅</span><span>光学传感器</span></div>
+        <a class="proj-link" href="#">查看项目 →</a>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="proj-titlebar"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div><span>project-02.py</span></div>
+      <div class="proj-body">
+        <h3>AI避障小车</h3>
+        <p>在AI避障小车的实训中，我担任编程员，通过Keil uVision5和fly mcu对小车进行烧录，使小车的显示屏显示组员和组名，并使小车运行起来实现循迹，避障。
+          并且通过python语言和加装摄像头进一步使小车能够ai化，跟随人的行动而移动或避障。</p>
+        <div class="proj-tags"><span>Keil uVision5</span><span>python</span></div>
+        <a class="proj-link" href="#">查看项目 →</a>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="proj-titlebar"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div><span>project-03.tsx</span></div>
+      <div class="proj-body">
+        <h3>个人介绍网站</h3>
+        <p>为了跟随时代的进步，学习新的ai和编程知识，制作了本网站</p>
+        <div class="proj-tags"><span>标签一</span><span>标签二</span></div>
+        <a class="proj-link" href="#">查看项目 →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="contact">
+  <div class="contact-box">
+    <div class="sec-label" style="text-align:left; display:inline-block;">03 · CONTACT</div>
+    <h2 class="sec-title">一起聊聊</h2>
+    <p>如果有实习或工作机会，欢迎扫码加我微信。</p>
+    <div class="qr-wrap">
+      <div class="qr-box">
+        <!-- 把你的微信二维码图片放到网页同一文件夹，改成 <img src="你的图片文件名.jpg"> 替换下面这行 -->
+        <img src="qrcode.jpg">
+      </div>
+      <div class="qr-caption">长按 / 扫码添加微信</div>
+    </div>
+  </div>
+</section>
+
+<footer>© 2026 柳贯 · 用代码手写的个人页面</footer>
+
+<script>
+  // typed name effect
+  const nameEl = document.getElementById('typedName');
+  const fullName = "柳贯";
+  let i = 0;
+  function typeName(){
+    if(i <= fullName.length){
+      nameEl.textContent = fullName.slice(0,i);
+      nameEl.style.opacity = 1;
+      i++;
+      setTimeout(typeName, 90);
+    } else {
+      const c = document.createElement('span');
+      c.className = 'cursor';
+      nameEl.appendChild(c);
+    }
+  }
+  setTimeout(typeName, 500);
+
+  // fake terminal command handler
+  const input = document.getElementById('cmdInput');
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      const cmd = input.value.trim().toLowerCase();
+      input.value = '';
+      if(cmd === 'about') document.getElementById('about').scrollIntoView({behavior:'smooth'});
+      else if(cmd === 'projects') document.getElementById('projects').scrollIntoView({behavior:'smooth'});
+      else if(cmd === 'contact') document.getElementById('contact').scrollIntoView({behavior:'smooth'});
+      else if(cmd === 'clear') input.value = '';
+      else if(cmd === 'help') input.placeholder = 'try: about / projects / contact / clear';
+    }
+  });
+</script>
+
 </body>
 </html>

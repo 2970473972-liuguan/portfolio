@@ -3,293 +3,206 @@ const box = document.getElementById("ai-chat");
 const input = document.getElementById("user-input");
 const body = document.getElementById("chat-body");
 
-// 聊天历史
+
+// 聊天记录
 let chatHistory = [];
 
 
-// ================================
-// 打开 / 关闭 AI 聊天窗口
-// ================================
 
-btn.onclick = function () {
+// 打开关闭窗口
 
-    if (box.style.display === "block") {
+btn.onclick = function(){
 
-        box.style.display = "none";
+    if(box.style.display === "block"){
 
-    } else {
+        box.style.display="none";
 
-        box.style.display = "block";
+    }else{
+
+        box.style.display="block";
 
         input.focus();
+
     }
+
 };
 
 
-// ================================
+
+
 // 发送消息
-// ================================
 
-async function sendMessage() {
-
-    const text = input.value.trim();
-
-    if (!text) {
-        return;
-    }
+async function sendMessage(){
 
 
-    // 显示用户消息
-    addMessage(text, "user-message");
+    const text=input.value.trim();
 
 
-    // 清空输入框
-    input.value = "";
+    if(!text)return;
 
 
-    // 创建“正在思考”
-    const loading = document.createElement("div");
 
-    loading.className = "ai-message";
+    addMessage(
+        text,
+        "user-message"
+    );
 
-    loading.textContent = "正在思考...";
+
+
+    input.value="";
+
+
+
+    const loading=document.createElement("div");
+
+    loading.className="ai-message";
+
+    loading.textContent="正在思考...";
 
     body.appendChild(loading);
 
 
-    // 滚动到底部
-    body.scrollTop = body.scrollHeight;
+
+    try{
 
 
-    try {
+        const response=await fetch(
+            "/api/chat",
+            {
 
-        // =====================================
-        // 调用 Vercel 后端
-        // =====================================
+            method:"POST",
 
-        const response = await fetch("/api/chat", {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
+            headers:{
+                "Content-Type":"application/json"
             },
 
-            body: JSON.stringify({
 
-                message: text,
+            body:JSON.stringify({
 
-                history: chatHistory
+                message:text,
+
+                history:chatHistory
 
             })
 
         });
 
 
-        const data = await response.json();
+
+        const data=await response.json();
 
 
-        // 删除“正在思考”
+
         loading.remove();
 
 
-        // 判断 API 是否成功
-        if (!response.ok) {
+
+        if(!response.ok){
 
             throw new Error(
-                data.error || "AI 请求失败"
+                data.error || "请求失败"
             );
 
         }
 
 
-        // 获取 AI 回复
-        const reply =
-            data.reply ||
-            "抱歉，AI 暂时没有返回内容。";
+
+        const reply=data.reply;
 
 
-        // 显示 AI 回复
+
         addMessage(
             reply,
             "ai-message"
         );
 
 
-        // =====================================
-        // 保存聊天历史
-        // =====================================
 
         chatHistory.push({
 
-            role: "user",
+            role:"user",
 
-            content: text
+            content:text
 
         });
 
 
+
         chatHistory.push({
 
-            role: "assistant",
+            role:"assistant",
 
-            content: reply
+            content:reply
 
         });
 
 
-        // 最多保留最近 10 条消息
-        if (chatHistory.length > 10) {
 
-            chatHistory =
-                chatHistory.slice(-10);
-
-        }
+    }catch(error){
 
 
-    } catch (error) {
-
-        console.error(
-            "AI Chat Error:",
-            error
-        );
+        console.error(error);
 
 
-        // 删除加载状态
         loading.remove();
 
 
-        // 显示错误
         addMessage(
-            "抱歉，AI 暂时无法连接，请稍后再试。",
+
+            "⚠️ AI连接失败："+error.message,
+
             "ai-message"
+
         );
 
     }
 
 
-    // 滚动到底部
-    body.scrollTop =
-        body.scrollHeight;
 }
 
 
-// ================================
-// 添加聊天消息
-// ================================
-
-function addMessage(text, className) {
-
-    const message =
-        document.createElement("div");
 
 
-    message.className =
-        className;
+// 添加消息
+
+function addMessage(text,className){
 
 
-    // 使用 textContent
-    // 防止用户输入 HTML
-    message.textContent =
-        text;
+    const div=document.createElement("div");
 
 
-    body.appendChild(message);
+    div.className=className;
 
 
-    // 自动滚动
-    body.scrollTop =
-        body.scrollHeight;
+    div.textContent=text;
+
+
+    body.appendChild(div);
+
+
+    body.scrollTop=body.scrollHeight;
+
+
 }
 
 
-// ================================
-// Enter 键发送
-// ================================
+
+
+
+// 回车发送
 
 input.addEventListener(
-    "keydown",
-    function (event) {
+"keydown",
+function(event){
 
-        if (event.key === "Enter") {
 
-            event.preventDefault();
+    if(event.key==="Enter"){
 
-           async function sendMessage() {
-  const input = document.getElementById("user-input");
-  const body = document.getElementById("chat-body");
+        event.preventDefault();
 
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  body.innerHTML += `
-    <div class="user-message"></div>
-  `;
-
-  body.lastElementChild.textContent = text;
-
-  input.value = "";
-
-  const thinking = document.createElement("div");
-
-  thinking.className = "ai-message";
-  thinking.textContent = "正在思考...";
-
-  body.appendChild(thinking);
-
-  body.scrollTop = body.scrollHeight;
-
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-        message: text
-      })
-    });
-
-    const data = await response.json();
-
-    thinking.remove();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error || "AI 请求失败"
-      );
-    }
-
-    const reply = document.createElement("div");
-
-    reply.className = "ai-message";
-    reply.textContent = data.reply;
-
-    body.appendChild(reply);
-
-  } catch (error) {
-
-    console.error("聊天错误:", error);
-
-    thinking.remove();
-
-    const errorMessage = document.createElement("div");
-
-    errorMessage.className = "ai-message";
-
-    errorMessage.textContent =
-      "⚠️ AI 助手连接失败：" + error.message;
-
-    body.appendChild(errorMessage);
-  }
-
-  body.scrollTop = body.scrollHeight;
-}
-
-        }
+        sendMessage();
 
     }
-);
+
+
+});

@@ -215,7 +215,79 @@ input.addEventListener(
 
             event.preventDefault();
 
-            sendMessage();
+           async function sendMessage() {
+  const input = document.getElementById("user-input");
+  const body = document.getElementById("chat-body");
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  body.innerHTML += `
+    <div class="user-message"></div>
+  `;
+
+  body.lastElementChild.textContent = text;
+
+  input.value = "";
+
+  const thinking = document.createElement("div");
+
+  thinking.className = "ai-message";
+  thinking.textContent = "正在思考...";
+
+  body.appendChild(thinking);
+
+  body.scrollTop = body.scrollHeight;
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        message: text
+      })
+    });
+
+    const data = await response.json();
+
+    thinking.remove();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "AI 请求失败"
+      );
+    }
+
+    const reply = document.createElement("div");
+
+    reply.className = "ai-message";
+    reply.textContent = data.reply;
+
+    body.appendChild(reply);
+
+  } catch (error) {
+
+    console.error("聊天错误:", error);
+
+    thinking.remove();
+
+    const errorMessage = document.createElement("div");
+
+    errorMessage.className = "ai-message";
+
+    errorMessage.textContent =
+      "⚠️ AI 助手连接失败：" + error.message;
+
+    body.appendChild(errorMessage);
+  }
+
+  body.scrollTop = body.scrollHeight;
+}
 
         }
 
